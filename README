@@ -1,0 +1,28 @@
+# lein-clojurescript
+
+leiningen plugin for clojurescript compilation.
+
+See clojure.org for clojurescript details.
+See code.google.com/closure for google closure details.
+See github.com/technomancy/leiningen for lein details.
+
+## Usage
+
+In your project.clj add a dev-dependency
+    :dev-dependencies [[lein-clojurescript "1.0.0-SNAPSHOT"] ...]
+
+If you'd like the plugin to hook into the normal compile add to the hooks list:
+    :hooks [leiningen.clojurescript ...] 
+
+To compile clojurescript files in src:
+lein clojurescript
+
+To compile clojurescript along with a normal compile:
+lein compile
+
+Compile with advanced mode: 
+lein compile '{:optimizations :advanced}'
+
+## License
+Copyright (C) 2011 Justin Barton
+Distributed under the Eclipse Public License, the same as Clojure.
