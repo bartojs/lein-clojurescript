@@ -1,4 +1,4 @@
-(ns ^{:doc "clojurescript compile" :author "justin barton"}
+(ns ^{:doc "clojurescript leiningen compile" :author "justin barton"}
   leiningen.clojurescript.compile
   (:require [cljs.closure :as closure]
 			[clojure.string :as string]
@@ -27,7 +27,6 @@
   )
 
 (defn compile-hook [orig-task project & args]
-  (println "compile hook called")
   (let [js-args (filter clojurescript-arg? args)
 		clj-args (remove clojurescript-arg? args)]
 	(apply compile-task project js-args)

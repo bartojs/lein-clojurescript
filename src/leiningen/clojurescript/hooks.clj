@@ -6,8 +6,6 @@
 			)
   )
 
-(println "adding compile hook")
 (hooke/add-hook #'leiningen.compile/compile leiningen.clojurescript.compile/compile-hook)
 
-(println "adding repl hook")
 (hooke/add-hook #'leiningen.repl/repl leiningen.clojurescript.repl/repl-hook)
