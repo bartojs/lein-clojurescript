@@ -30,8 +30,8 @@
   (println "compile hook called")
   (let [js-args (filter clojurescript-arg? args)
 		clj-args (remove clojurescript-arg? args)]
-	(apply compile-task (cons project js-args))
+	(apply compile-task project js-args)
 	(when (or (contains? project :aot) (seq clj-args))
-	  (apply orig-task (cons project clj-args)))
+	  (apply orig-task project clj-args))
 	)
   )

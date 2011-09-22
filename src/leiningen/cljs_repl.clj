@@ -8,5 +8,5 @@
 						(contains? project :repl-mode) (:repl-mode project)
 						:else :browser)]
 	(apply leiningen.clojurescript.repl/repl-task
-		   (cons (assoc project :repl-mode repl-mode)
-				 args))))
+		   (assoc project :repl-mode repl-mode)
+		   args)))
