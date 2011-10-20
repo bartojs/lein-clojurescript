@@ -2,6 +2,11 @@
 
 leiningen plugin for clojurescript compilation.
 
+NOTE!  clojurescript compiler needs clojure-1.3.0 to run 
+       and since this is a plugin that runs the compiler
+       it needs leiningen to run with 1.3.0 (current stable & master branches are on 1.2.1)
+       until its released I have a build of lein in 1.3.0 
+
 See clojure.org for clojurescript details.
 See code.google.com/closure for google closure details.
 See github.com/technomancy/leiningen for lein details.
