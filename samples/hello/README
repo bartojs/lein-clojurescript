@@ -1,0 +1,13 @@
+# hello
+
+helloworld for clojurescript using the lein-clojurescript plugin
+
+## Usage
+
+to compile:    lein clojurescript
+to view:       open hello-dev.html in a browser.
+
+
+## License
+Copyright (C) 2011 justin barton
+Distributed under the Eclipse Public License, the same as Clojure.
