@@ -1,7 +1,6 @@
 (ns ^{:doc "clojurescript leiningen plugin" :author "justin barton"}
   leiningen.clojurescript
-  (:require [cljs.closure :as closure]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [clojure.java.io :as io]
             [robert.hooke :as hooke]
             leiningen.compile)
@@ -14,6 +13,13 @@
   (.endsWith (string/lower-case filename) ".cljs"))
 
 (def getName (memfn getName))
+
+(defn- cljsc [project source-dir options]
+  (leiningen.compile/eval-in-project
+   (dissoc project :source-path)
+   `(cljsc/build ~source-dir ~options)
+   nil true
+   '(require '[cljs.closure :as cljsc])))
 
 (defn clojurescript
   "lein-clojurescript: Compiles clojurescript (.cljs) files in src to google
@@ -33,7 +39,7 @@ examples: lein clojurescript
     (if-let [cljsfiles (seq (filter (comp clojurescript-file? getName)
                                     (file-seq (io/file sourcedir))))]
       (do
-        (closure/build sourcedir opts)
+        (cljsc project sourcedir opts)
         (println (format "compiled %d files to %s/ and '%s' (took %d ms)"
                          (count cljsfiles) (:output-dir opts) (:output-to opts)
                          (- (.getTime (Date.)) starttime))))
