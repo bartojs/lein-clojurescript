@@ -15,11 +15,12 @@
 (def getName (memfn getName))
 
 (defn- cljsc [project source-dir options]
-  (leiningen.compile/eval-in-project
-   (dissoc project :source-path)
-   `(cljsc/build ~source-dir ~options)
-   nil true
-   '(require '[cljs.closure :as cljsc])))
+  (binding [leiningen.compile/*skip-auto-compile* true]
+    (leiningen.compile/eval-in-project
+     (dissoc project :source-path)
+     `(cljsc/build ~source-dir ~options)
+     nil nil
+     '(require '[cljs.closure :as cljsc]))))
 
 (defn clojurescript
   "lein-clojurescript: Compiles clojurescript (.cljs) files in src to google
