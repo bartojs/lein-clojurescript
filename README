@@ -31,6 +31,9 @@ lein compile
 Compile with advanced mode: 
 lein compile '{:optimizations :advanced}'
 
+## Authors
+   fhd (Felix H. Dahlke)
+
 ## License
 Copyright (C) 2011 Justin Barton
 Distributed under the Eclipse Public License, the same as Clojure.
