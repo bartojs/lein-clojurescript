@@ -1,18 +1,30 @@
 (ns ^{:doc "clojurescript leiningen plugin " :author "justin barton"}
   leiningen.clojurescript.repl
-  (:require cljs.repl cljs.repl.rhino cljs.repl.browser)
+;;  (:require cljs.repl cljs.repl.rhino cljs.repl.browser)
   )
 
+(defn- repl-browser [project]
+  (leiningen.compile/eval-in-project
+     project
+	 `(cljs.repl/repl (cljs.repl.browser/repl-env))
+     nil nil
+     '(require 'cljs.repl 'cljs.repl.browser)))
+
+(defn- repl-rhino [project]
+   (leiningen.compile/eval-in-project
+     project
+	 `(cljs.repl/repl (cljs.repl.rhino/repl-env))
+     nil nil
+     '(require 'cljs.repl 'cljs.repl.rhino)))
+
 (defn repl-task [project & args]
-  (cljs.repl/repl
      (if (= :rhino (:repl-mode project))
 		 (do
 		   (println "starting clojurescript rhino repl")
-		   (cljs.repl.rhino/repl-env))
+		   (repl-rhino project))
 		 (do
 		   (println "starting clojurescript browser repl")
-		   (cljs.repl.browser/repl-env))))
-  )
+		   (repl-browser project))))
 
 (defn repl-hook [orig-task project & args]
     (println "repl hook called")
