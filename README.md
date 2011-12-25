@@ -1,6 +1,6 @@
 # lein-clojurescript
 
-leiningen plugin for clojurescript compilation.
+[leiningen](https://github.com/technomancy/leiningen) plugin for clojurescript compilation.
 
 NOTE! as of 1.0.1-SNAPSHOT lein-clojurescript works with lein 1.6.1.1
       (thanks to Felix H. Dahlke)
@@ -11,20 +11,30 @@ See github.com/technomancy/leiningen for lein details.
 
 ## Usage
 
-In your project.clj add a dev-dependency
-    :dev-dependencies [[lein-clojurescript "1.0.1-SNAPSHOT"] ...]
+```
+lein install plugin lein-clojurescript 1.0.2
+```
+
+Or in your project.clj add a dev-dependency
+```
+:dev-dependencies [[lein-clojurescript "1.0.1-SNAPSHOT"] ...]
+```
 
 To compile clojurescript files in src:
 lein clojurescript
 
 If you'd like the plugin to hook into the normal compile add to the hooks list:
-    :hooks [leiningen.clojurescript ...]
- 
+```
+:hooks [leiningen.clojurescript ...]
+``` 
+
 To compile clojurescript along with a normal compile:
 lein compile
 
 Compile with advanced mode: 
+```
 lein compile '{:optimizations :advanced}'
+```
 
 ## Authors
    fhd (Felix H. Dahlke)
