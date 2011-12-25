@@ -21,7 +21,9 @@ Or in your project.clj add a dev-dependency
 ```
 
 To compile clojurescript files in src:
+```
 lein clojurescript
+```
 
 If you'd like the plugin to hook into the normal compile add to the hooks list:
 ```
@@ -29,12 +31,36 @@ If you'd like the plugin to hook into the normal compile add to the hooks list:
 ``` 
 
 To compile clojurescript along with a normal compile:
+```
 lein compile
+```
 
 Compile with advanced mode: 
 ```
 lein compile '{:optimizations :advanced}'
 ```
+
+Or add to project.clj:
+
+```
+:cljs-optimizations :advanced
+```
+
+Additional plugin-specific project.clj settings include:
+
+```
+:cljs-output-to
+```
+
+and
+
+```
+:cljs-output-dir
+```
+
+For an example usage see samples/hello/project.clj.
+
+
 
 ## Authors
    fhd (Felix H. Dahlke)
