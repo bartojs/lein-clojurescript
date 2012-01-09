@@ -32,7 +32,9 @@ examples: lein clojurescript
               :optimizations :advanced}'"
   [project & args]
   (let [outputfile (str (or (:name project) (:group project)) ".js")
-        opts (apply merge {:output-to outputfile :output-dir "out"}
+        opts (apply merge {:output-to (or (:cljs-output-to project) outputfile)
+                           :output-dir (or (:cljs-output-dir project) "out")
+                           :optimizations (:cljs-optimizations project)}
                     (map read-string (filter clojurescript-arg? args)))
         sourcedir (or (:clojurescript-src project) (:src-dir opts) "src")
         starttime (.getTime (Date.))]
