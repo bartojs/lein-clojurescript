@@ -63,8 +63,9 @@ For an example usage see samples/hello/project.clj.
 
 
 ## Authors
-   fhd (Felix H. Dahlke)
-   bartonj (Justin Barton)
+   * fhd (Felix H. Dahlke)
+   * rplevy (Robert Levy)
+   * bartonj (Justin Barton)
 
 ## License
 Copyright (C) 2011 Justin Barton
