@@ -65,6 +65,7 @@ For an example usage see samples/hello/project.clj.
 ## Authors
    * fhd (Felix H. Dahlke)
    * rplevy (Robert Levy)
+   * mmwaikar (Manoj Waikar)
    * bartonj (Justin Barton)
 
 ## License
