@@ -12,7 +12,7 @@ See github.com/technomancy/leiningen for lein details.
 ## Usage
 
 ```
-lein install plugin lein-clojurescript 1.0.2-SNAPSHOT
+lein plugin install lein-clojurescript 1.0.2-SNAPSHOT
 ```
 
 Or in your project.clj add a dev-dependency
