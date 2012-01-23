@@ -12,12 +12,12 @@ See github.com/technomancy/leiningen for lein details.
 ## Usage
 
 ```
-lein plugin install lein-clojurescript 1.0.2-SNAPSHOT
+lein plugin install lein-clojurescript 1.1.0
 ```
 
 Or in your project.clj add a dev-dependency
 ```
-:dev-dependencies [[lein-clojurescript "1.0.2-SNAPSHOT"] ...]
+:dev-dependencies [[lein-clojurescript "1.1.0"] ...]
 ```
 
 To compile clojurescript files in src:
