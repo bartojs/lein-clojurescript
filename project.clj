@@ -2,7 +2,6 @@
   :description "leiningen plugin for clojurescript"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/clojurescript "0.0-927"]
-                 [com.google.javascript/closure-compiler "r1352"]
                  ]
   :repositories {"sonatype-oss"
                  "http://oss.sonatype.org/content/groups/public/"})
