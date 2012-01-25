@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [robert.hooke :as hooke]
             leiningen.compile)
-  (:use [watcher :only (with-watch-paths)])
+  (:use [watcher :only (with-watch-paths)]
+        [clj-stacktrace.repl :only (pst+)])
   (:import java.util.Date))
 
 (defn- clojurescript-arg? [arg]
@@ -18,10 +19,13 @@
 (defn- cljsc [project source-dir options]
   (binding [leiningen.compile/*skip-auto-compile* true]
     (leiningen.compile/eval-in-project
-     (dissoc project :source-path)
-     `(cljsc/build ~source-dir ~options)
-     nil nil
-     '(require '[cljs.closure :as cljsc]))))
+      (dissoc project :source-path)
+      `(try
+         (cljsc/build ~source-dir ~options)
+         (catch Throwable e#
+           (s/pst+ e#)))
+      nil nil
+      '(require '[cljs.closure :as cljsc] '[clj-stacktrace.repl :as s]))))
 
 (defn clojurescript
   "lein-clojurescript: Compiles clojurescript (.cljs) files in src to google
