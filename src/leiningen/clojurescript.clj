@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [robert.hooke :as hooke]
             leiningen.compile)
+  (:use [watcher :only (with-watch-paths)])
   (:import java.util.Date))
 
 (defn- clojurescript-arg? [arg]
@@ -26,8 +27,11 @@
   "lein-clojurescript: Compiles clojurescript (.cljs) files in src to google
 closure compatible javascript (.js) files.
 Can use as a standalone task or can hook into the normal compile task.
-Uses project name or group for outputfile. Accepts commandline args.
+Uses project name or group for outputfile. Accepts commandline args. If the
+argument 'watch' is present, the sources are monitored and recompiled when they
+change.
 examples: lein clojurescript
+          lein clojurescript watch
           lein compile '{:output-dir \"myout\" :output-to \"bla.js\" \\
               :optimizations :advanced}'"
   [project & args]
@@ -45,7 +49,23 @@ examples: lein clojurescript
         (cljsc project sourcedir opts)
         (println (format "compiled %d files to %s/ and '%s' (took %d ms)"
                          (count cljsfiles) (:output-dir opts) (:output-to opts)
-                         (- (.getTime (Date.)) starttime))))
+                         (- (.getTime (Date.)) starttime)))
+        (when (some #{"watch"} args)
+          (let [events? (atom false)]
+            (future
+              (println "Watching...")
+              (with-watch-paths [sourcedir]
+                (fn [_] (reset! events? true))
+                :recursive))
+            (while true
+              (if @events?
+                (do
+                  (println "Compiling...")
+                  (cljsc project sourcedir opts)
+                  (println "Watching...")
+                  (Thread/sleep 500)
+                  (reset! events? false))
+                (Thread/sleep 100))))))
       (println "no cljs files found."))))
 
 (defn compile-clojurescript-hook [task & args]
