@@ -4,6 +4,8 @@
             [clojure.java.io :as io]
             [robert.hooke :as hooke]
             leiningen.compile)
+  (:use [watcher :only (with-watch-paths)]
+        [clj-stacktrace.repl :only (pst+)])
   (:import java.util.Date))
 
 (defn- clojurescript-arg? [arg]
@@ -17,23 +19,32 @@
 (defn- cljsc [project source-dir options]
   (binding [leiningen.compile/*skip-auto-compile* true]
     (leiningen.compile/eval-in-project
-     (dissoc project :source-path)
-     `(cljsc/build ~source-dir ~options)
-     nil nil
-     '(require '[cljs.closure :as cljsc]))))
+      (dissoc project :source-path)
+      `(try
+         (cljsc/build ~source-dir ~options)
+         (catch Throwable e#
+           (s/pst+ e#)))
+      nil nil
+      '(require '[cljs.closure :as cljsc] '[clj-stacktrace.repl :as s]))))
 
 (defn clojurescript
   "lein-clojurescript: Compiles clojurescript (.cljs) files in src to google
 closure compatible javascript (.js) files.
 Can use as a standalone task or can hook into the normal compile task.
-Uses project name or group for outputfile. Accepts commandline args.
+Uses project name or group for outputfile. Accepts commandline args. If the
+argument 'watch' is present, the sources are monitored and recompiled when they
+change.
 examples: lein clojurescript
+          lein clojurescript watch
           lein compile '{:output-dir \"myout\" :output-to \"bla.js\" \\
               :optimizations :advanced}'"
   [project & args]
   (let [outputfile (str (or (:name project) (:group project)) ".js")
         opts (apply merge {:output-to (or (:cljs-output-to project) outputfile)
                            :output-dir (or (:cljs-output-dir project) "out")
+                           :externs (:cljs-externs project)
+                           :libs (:cljs-libs project)
+                           :foreign-libs (:cljs-foreign-libs project)
                            :optimizations (:cljs-optimizations project)}
                     (map read-string (filter clojurescript-arg? args)))
         sourcedir (or (:clojurescript-src project) (:src-dir opts) "src")
@@ -45,7 +56,23 @@ examples: lein clojurescript
         (cljsc project sourcedir opts)
         (println (format "compiled %d files to %s/ and '%s' (took %d ms)"
                          (count cljsfiles) (:output-dir opts) (:output-to opts)
-                         (- (.getTime (Date.)) starttime))))
+                         (- (.getTime (Date.)) starttime)))
+        (when (some #{"watch"} args)
+          (let [events? (atom false)]
+            (future
+              (println "Watching...")
+              (with-watch-paths [sourcedir]
+                (fn [_] (reset! events? true))
+                :recursive))
+            (while true
+              (if @events?
+                (do
+                  (println "Compiling...")
+                  (cljsc project sourcedir opts)
+                  (println "Watching...")
+                  (Thread/sleep 500)
+                  (reset! events? false))
+                (Thread/sleep 100))))))
       (println "no cljs files found."))))
 
 (defn compile-clojurescript-hook [task & args]
