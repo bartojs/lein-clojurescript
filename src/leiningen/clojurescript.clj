@@ -24,8 +24,7 @@
        (let [res# (clojure.java.shell/sh ~@cmd)]
          (println (:out res#))
          (println (:err res#))
-         (when (not= 0 (:exit res#))
-           (:exit res#))))))
+         (:exit res#)))))
 
 (defn- build-once [project source-dir opts args cljsfiles]
   `(try
@@ -37,8 +36,7 @@
                         ~(:output-dir opts)
                         ~(:output-to opts)
                         (- (.getTime (Date.)) starttime#))))
-     (when-let [fail-count# ~(maybe-test project args)]
-       (System/exit fail-count#))
+     (System/exit ~(maybe-test project args))
      (catch Throwable e#
        (clj-stacktrace.repl/pst+ e#)
        (System/exit 1))))
