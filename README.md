@@ -25,6 +25,31 @@ To compile clojurescript files in src:
 lein clojurescript
 ```
 
+To start the compile with a clean output directory and output file:
+```
+lein clojurescript fresh
+```
+
+To clean without compiling:
+```
+lein clojurescript clean
+```
+
+To watch the sources and recompile when they change:
+```
+lein clojurescript watch
+```
+
+To run a test command after compiling (defined by :cljs-test-cmd):
+```
+lein clojurescript test
+```
+
+Combine some of the above:
+```
+lein clojurescript fresh watch test
+```
+
 If you'd like the plugin to hook into the normal compile add to the hooks list:
 ```
 :hooks [leiningen.clojurescript ...]
@@ -50,13 +75,21 @@ Additional plugin-specific project.clj settings include:
 
 ```
 :cljs-output-to
-```
-
-and
-
-```
 :cljs-output-dir
+:cljs-externs
+:cljs-libs
+:cljs-foreign-libs
+:cljs-test-cmd
 ```
+
+`:cljs-test-cmd` must be in a format useable by `clojure.java.shell/sh`. E.g.
+```
+:cljs-test-cmd ["phantomjs" "tests.js"]
+```
+
+See <http://lukevanderhart.com/2011/09/30/using-javascript-and-clojurescript.html>
+for more information about `:cljs-externs`, `:cljs-libs`, and
+`:cljs-foreign-libs`.
 
 For an example usage see samples/hello/project.clj.
 
