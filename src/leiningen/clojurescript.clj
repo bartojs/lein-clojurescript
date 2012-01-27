@@ -3,7 +3,6 @@
   (:require [clojure.string :as string]
             [clojure.java.io :as io]
             [robert.hooke :as hooke]
-            clojure.java.shell
             leiningen.compile
             fs)
   (:use [watcher :only (with-watch-paths)])
