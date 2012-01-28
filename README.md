@@ -91,9 +91,8 @@ See <http://lukevanderhart.com/2011/09/30/using-javascript-and-clojurescript.htm
 for more information about `:cljs-externs`, `:cljs-libs`, and
 `:cljs-foreign-libs`.
 
-Put macro files in a separate source directory (e.g. cljs-macros) and make them
-visible to the compiler by adding `:extra-classpath-dirs ["cljs-macros"]` to
-the project definition.
+Make macro files visible to the compiler by adding `:extra-classpath-dirs
+["path-to-src"]` to the project definition.
 
 For an example usage see samples/hello/project.clj.
 
