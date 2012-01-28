@@ -36,7 +36,7 @@
                         ~(:output-dir opts)
                         ~(:output-to opts)
                         (- (.getTime (Date.)) starttime#))))
-     (System/exit ~(maybe-test project args))
+     (System/exit (or ~(maybe-test project args) 0))
      (catch Throwable e#
        (clj-stacktrace.repl/pst+ e#)
        (System/exit 1))))
