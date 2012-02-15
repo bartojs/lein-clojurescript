@@ -16,9 +16,9 @@
 
 (def getName (memfn getName))
 
-(defn- maybe-test [project args]
+(defn- maybe-test [opts args]
   (when-let [cmd (and (some #{"test"} args)
-                    (:cljs-test-cmd project))]
+                    (:test-cmd opts))]
     `(do
        (println (str "Running `" ~(clojure.string/join " " cmd) "`."))
        (let [res# (clojure.java.shell/sh ~@cmd)]
@@ -26,7 +26,7 @@
          (println (:err res#))
          (:exit res#)))))
 
-(defn- build-once [project source-dir opts args cljsfiles]
+(defn- build-once [source-dir opts args cljsfiles]
   `(try
      (println "Compiling ...")
      (let [starttime# (.getTime (Date.))]
@@ -36,12 +36,12 @@
                         ~(:output-dir opts)
                         ~(:output-to opts)
                         (- (.getTime (Date.)) starttime#))))
-     (System/exit (or ~(maybe-test project args) 0))
+     (System/exit (or ~(maybe-test opts args) 0))
      (catch Throwable e#
        (clj-stacktrace.repl/pst+ e#)
        (System/exit 1))))
 
-(defn- build-loop [project source-dir opts args] 
+(defn- build-loop [source-dir opts args] 
   `(let [events?# (atom true)]
      (future
        (watcher/with-watch-paths [~source-dir]
@@ -53,7 +53,7 @@
            (println "Compiling ...")
            (try
              (cljs.closure/build ~source-dir ~opts)
-             ~(maybe-test project args)
+             ~(maybe-test opts args)
              (catch Throwable e#
                (clj-stacktrace.repl/pst+ e#)))
            (println "Watching ...")
@@ -64,10 +64,10 @@
 (defn- build [project source-dir opts args cljsfiles]
   (binding [leiningen.compile/*skip-auto-compile* true]
     (leiningen.compile/eval-in-project
-      (dissoc project :source-path)
+      project
       (if (some #{"watch"} args) 
-        (build-loop project source-dir opts args)
-        (build-once project source-dir opts args cljsfiles))
+        (build-loop source-dir opts args)
+        (build-once source-dir opts args cljsfiles))
       nil
       nil
       '(require 'cljs.closure
@@ -98,14 +98,9 @@ examples: lein clojurescript
                          :optimizations :advanced}'"
   [project & args]
   (let [outputfile (str (or (:name project) (:group project)) ".js")
-        opts (apply merge {:output-to (or (:cljs-output-to project) outputfile)
-                           :output-dir (or (:cljs-output-dir project) "out")
-                           :externs (:cljs-externs project)
-                           :libs (:cljs-libs project)
-                           :foreign-libs (:cljs-foreign-libs project)
-                           :optimizations (:cljs-optimizations project)}
+        opts (apply merge (:cljs project)
                     (map read-string (filter clojurescript-arg? args)))
-        sourcedir (or (:clojurescript-src project) (:src-dir opts) "src")
+        sourcedir (or (:src-dir opts) "src")
         starttime (.getTime (Date.))]
     (when (some #{"clean" "fresh"} args)
       (println (str "Removing '" (:output-dir opts)
@@ -118,7 +113,7 @@ examples: lein clojurescript
         (do
           (build project sourcedir opts args cljsfiles)
           (when-let [[x y] (and (:optimizations opts)
-                                (:cljs-wrap-output project))]
+                                (:wrap-output opts))]
             (spit (:output-to opts)
                   (str x (slurp (:output-to opts)) y))))
         (do

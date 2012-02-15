@@ -40,7 +40,7 @@ To watch the sources and recompile when they change:
 lein clojurescript watch
 ```
 
-To run a test command after compiling (defined by :cljs-test-cmd):
+To run a test command after compiling (defined by :test-cmd):
 ```
 lein clojurescript test
 ```
@@ -65,38 +65,34 @@ Compile with advanced mode:
 lein compile '{:optimizations :advanced}'
 ```
 
-Or add to project.clj:
-
-```
-:cljs-optimizations :advanced
-```
-
 Additional plugin-specific project.clj settings include:
 
 ```
-:cljs-output-to
-:cljs-output-dir
-:cljs-externs
-:cljs-libs
-:cljs-foreign-libs
-:cljs-test-cmd
-:cljs-wrap-output
+:cljs
+{:output-to "output/file.js"
+ :output-dir "output/dir"
+ :externs ["externs.js"]
+ :libs ["path/to/lib.js"]
+ :foreign-libs [{:file "flib.js" :provides ["flib.core"]}]
+ :test-cmd ["testcmd" "arg1" "arg2"]
+ :wrap-output ["(function(){" "}())"]
+ :src-dir "cljs/src/dir"}
 ```
 
-`:cljs-test-cmd` must be in a format useable by `clojure.java.shell/sh`. E.g.
+`:test-cmd` must be in a format useable by `clojure.java.shell/sh`. E.g.
 ```
-:cljs-test-cmd ["phantomjs" "tests.js"]
+:test-cmd ["phantomjs" "tests.js"]
 ```
 
-`:cljs-wrap-output` must be a vector of two strings, which will wrap optimized
+`:wrap-output` must be a vector of two strings, which will wrap optimized
 output.
 ```
-:cljs-wrap-output ["(function(){" "}())"]
+:wrap-output ["(function(){" "}())"]
 ```
 
 See <http://lukevanderhart.com/2011/09/30/using-javascript-and-clojurescript.html>
-for more information about `:cljs-externs`, `:cljs-libs`, and
-`:cljs-foreign-libs`.
+for more information about `:externs`, `:libs`, and
+`:foreign-libs`.
 
 Make macro files visible to the compiler by adding `:extra-classpath-dirs
 ["path-to-src"]` to the project definition.
