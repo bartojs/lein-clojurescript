@@ -80,11 +80,18 @@ Additional plugin-specific project.clj settings include:
 :cljs-libs
 :cljs-foreign-libs
 :cljs-test-cmd
+:cljs-wrap-output
 ```
 
 `:cljs-test-cmd` must be in a format useable by `clojure.java.shell/sh`. E.g.
 ```
 :cljs-test-cmd ["phantomjs" "tests.js"]
+```
+
+`:cljs-wrap-output` must be a vector of two strings, which will wrap optimized
+output.
+```
+:cljs-wrap-output ["(function(){" "}())"]
 ```
 
 See <http://lukevanderhart.com/2011/09/30/using-javascript-and-clojurescript.html>

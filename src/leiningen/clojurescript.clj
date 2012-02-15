@@ -115,7 +115,12 @@ examples: lein clojurescript
     (when-not (some #{"clean"} args)
       (if-let [cljsfiles (seq (filter (comp clojurescript-file? getName)
                                       (file-seq (io/file sourcedir))))]
-        (build project sourcedir opts args cljsfiles)
+        (do
+          (build project sourcedir opts args cljsfiles)
+          (when-let [[x y] (and (:optimizations opts)
+                                (:cljs-wrap-output project))]
+            (spit (:output-to opts)
+                  (str x (slurp (:output-to opts)) y))))
         (do
           (println "No cljs files found.")
           1)))))
