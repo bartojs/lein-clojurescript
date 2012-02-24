@@ -41,10 +41,10 @@
        (clj-stacktrace.repl/pst+ e#)
        (System/exit 1))))
 
-(defn- build-loop [source-dir opts args] 
+(defn- build-loop [source-dirs opts args]
   `(let [events?# (atom true)]
      (future
-       (watcher/with-watch-paths [~source-dir]
+       (watcher/with-watch-paths [~@source-dirs]
          (fn [ignored#] (reset! events?# true))
          :recursive))
      (while true
@@ -52,7 +52,7 @@
          (do
            (println "Compiling ...")
            (try
-             (cljs.closure/build ~source-dir ~opts)
+             (cljs.closure/build ~(first source-dirs) ~opts)
              ~(maybe-test opts args)
              (catch Throwable e#
                (clj-stacktrace.repl/pst+ e#)))
@@ -61,13 +61,13 @@
            (reset! events?# false))
          (Thread/sleep 100)))))
 
-(defn- build [project source-dir opts args cljsfiles]
+(defn- build [project source-dirs opts args cljsfiles]
   (binding [leiningen.compile/*skip-auto-compile* true]
     (leiningen.compile/eval-in-project
       project
-      (if (some #{"watch"} args) 
-        (build-loop source-dir opts args)
-        (build-once source-dir opts args cljsfiles))
+      (if (some #{"watch"} args)
+        (build-loop source-dirs opts args)
+        (build-once (first source-dirs) opts args cljsfiles))
       nil
       nil
       '(require 'cljs.closure
@@ -100,7 +100,11 @@ examples: lein clojurescript
   (let [outputfile (str (or (:name project) (:group project)) ".js")
         opts (apply merge (:cljs project)
                     (map read-string (filter clojurescript-arg? args)))
-        sourcedir (or (:src-dir opts) "src")
+        src-dir (or (:src-dir opts) "src")
+        test-dir (or (:test-dir opts) "test")
+        source-dirs (if (some #{"test"} args)
+                      [test-dir src-dir]
+                      [src-dir])
         starttime (.getTime (Date.))]
     (when (some #{"clean" "fresh"} args)
       (println (str "Removing '" (:output-dir opts)
@@ -109,9 +113,9 @@ examples: lein clojurescript
       (fs/deltree (:output-dir opts)))
     (when-not (some #{"clean"} args)
       (if-let [cljsfiles (seq (filter (comp clojurescript-file? getName)
-                                      (file-seq (io/file sourcedir))))]
+                                      (apply concat (map #(file-seq (io/file %)) source-dirs))))]
         (do
-          (build project sourcedir opts args cljsfiles)
+          (build project source-dirs opts args cljsfiles)
           (when-let [[x y] (and (:optimizations opts)
                                 (:wrap-output opts))]
             (spit (:output-to opts)
