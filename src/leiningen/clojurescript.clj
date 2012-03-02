@@ -16,17 +16,17 @@
 
 (def getName (memfn getName))
 
-(defn- maybe-test [project args]
+(defn- maybe-test [opts args]
   (when-let [cmd (and (some #{"test"} args)
-                    (:cljs-test-cmd project))]
+                    (:test-cmd opts))]
     `(do
        (println (str "Running `" ~(clojure.string/join " " cmd) "`."))
-       (let [res# (clojure.java.shell/sh ~@cmd)]
-         (println (:out res#))
-         (println (:err res#))
-         (:exit res#)))))
+       (let [proc# (conch.core/proc ~@cmd)]
+         (future (conch.core/stream-to-out proc# :out))
+         (future (conch.core/stream-to-out proc# :err))
+         (conch.core/exit-code proc#)))))
 
-(defn- build-once [project source-dir opts args cljsfiles]
+(defn- build-once [source-dir opts args cljsfiles]
   `(try
      (println "Compiling ...")
      (let [starttime# (.getTime (Date.))]
@@ -36,15 +36,15 @@
                         ~(:output-dir opts)
                         ~(:output-to opts)
                         (- (.getTime (Date.)) starttime#))))
-     (System/exit (or ~(maybe-test project args) 0))
+     (System/exit (or ~(maybe-test opts args) 0))
      (catch Throwable e#
        (clj-stacktrace.repl/pst+ e#)
        (System/exit 1))))
 
-(defn- build-loop [project source-dir opts args] 
+(defn- build-loop [source-dirs opts args]
   `(let [events?# (atom true)]
      (future
-       (watcher/with-watch-paths [~source-dir]
+       (watcher/with-watch-paths [~@source-dirs]
          (fn [ignored#] (reset! events?# true))
          :recursive))
      (while true
@@ -52,8 +52,8 @@
          (do
            (println "Compiling ...")
            (try
-             (cljs.closure/build ~source-dir ~opts)
-             ~(maybe-test project args)
+             (cljs.closure/build ~(first source-dirs) ~opts)
+             ~(maybe-test opts args)
              (catch Throwable e#
                (clj-stacktrace.repl/pst+ e#)))
            (println "Watching ...")
@@ -61,18 +61,18 @@
            (reset! events?# false))
          (Thread/sleep 100)))))
 
-(defn- build [project source-dir opts args cljsfiles]
+(defn- build [project source-dirs opts args cljsfiles]
   (binding [leiningen.compile/*skip-auto-compile* true]
     (leiningen.compile/eval-in-project
-      (dissoc project :source-path)
-      (if (some #{"watch"} args) 
-        (build-loop project source-dir opts args)
-        (build-once project source-dir opts args cljsfiles))
+      project
+      (if (some #{"watch"} args)
+        (build-loop source-dirs opts args)
+        (build-once (first source-dirs) opts args cljsfiles))
       nil
       nil
       '(require 'cljs.closure
                 'clj-stacktrace.repl
-                'clojure.java.shell
+                'conch.core
                 'clojure.string
                 'watcher))))
 
@@ -84,7 +84,7 @@ Uses project name or group for outputfile. Accepts the following commandline
 arguments:
 
 watch  monitor sources and recompile when they change.
-test   run (apply clojure.java.shell/sh (:cljs-test-cmd project)) after each
+test   run (apply conch.core/proc (:cljs-test-cmd project)) after each
        compile.
 fresh  remove output files before doing anything else.
 clean  remove output files and do nothing else (ignores other args).
@@ -98,14 +98,13 @@ examples: lein clojurescript
                          :optimizations :advanced}'"
   [project & args]
   (let [outputfile (str (or (:name project) (:group project)) ".js")
-        opts (apply merge {:output-to (or (:cljs-output-to project) outputfile)
-                           :output-dir (or (:cljs-output-dir project) "out")
-                           :externs (:cljs-externs project)
-                           :libs (:cljs-libs project)
-                           :foreign-libs (:cljs-foreign-libs project)
-                           :optimizations (:cljs-optimizations project)}
+        opts (apply merge (:cljs project)
                     (map read-string (filter clojurescript-arg? args)))
-        sourcedir (or (:clojurescript-src project) (:src-dir opts) "src")
+        src-dir (or (:src-dir opts) "src")
+        test-dir (or (:test-dir opts) "test")
+        source-dirs (if (some #{"test"} args)
+                      [test-dir src-dir]
+                      [src-dir])
         starttime (.getTime (Date.))]
     (when (some #{"clean" "fresh"} args)
       (println (str "Removing '" (:output-dir opts)
@@ -114,8 +113,13 @@ examples: lein clojurescript
       (fs/deltree (:output-dir opts)))
     (when-not (some #{"clean"} args)
       (if-let [cljsfiles (seq (filter (comp clojurescript-file? getName)
-                                      (file-seq (io/file sourcedir))))]
-        (build project sourcedir opts args cljsfiles)
+                                      (apply concat (map #(file-seq (io/file %)) source-dirs))))]
+        (do
+          (build project source-dirs opts args cljsfiles)
+          (when-let [[x y] (and (:optimizations opts)
+                                (:wrap-output opts))]
+            (spit (:output-to opts)
+                  (str x (slurp (:output-to opts)) y))))
         (do
           (println "No cljs files found.")
           1)))))
