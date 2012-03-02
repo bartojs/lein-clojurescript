@@ -21,10 +21,10 @@
                     (:test-cmd opts))]
     `(do
        (println (str "Running `" ~(clojure.string/join " " cmd) "`."))
-       (let [res# (clojure.java.shell/sh ~@cmd)]
-         (println (:out res#))
-         (println (:err res#))
-         (:exit res#)))))
+       (let [proc# (conch.core/proc ~@cmd)]
+         (future (conch.core/stream-to-out proc# :out))
+         (future (conch.core/stream-to-out proc# :err))
+         (conch.core/exit-code proc#)))))
 
 (defn- build-once [source-dir opts args cljsfiles]
   `(try
@@ -72,7 +72,7 @@
       nil
       '(require 'cljs.closure
                 'clj-stacktrace.repl
-                'clojure.java.shell
+                'conch.core
                 'clojure.string
                 'watcher))))
 
@@ -84,7 +84,7 @@ Uses project name or group for outputfile. Accepts the following commandline
 arguments:
 
 watch  monitor sources and recompile when they change.
-test   run (apply clojure.java.shell/sh (:cljs-test-cmd project)) after each
+test   run (apply conch.core/proc (:cljs-test-cmd project)) after each
        compile.
 fresh  remove output files before doing anything else.
 clean  remove output files and do nothing else (ignores other args).
